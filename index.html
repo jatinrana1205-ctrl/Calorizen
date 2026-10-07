@@ -1,229 +1,1281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calorizen v4 — AI Wellness Edition</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calorizen - Calorie Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
-<!-- Tailwind, Lucide, Chart.js -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-<style>
- body{font-family:'Inter',sans-serif;background:#f9fafb;transition:.3s;}
- .dark body{background:#111827;color:#f9fafb;}
- .tab.active{border-color:#6366f1;color:#6366f1;background:#eef2ff}
- .hidden{display:none}
- .file-label{cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;
-  background:#6366f1;color:#fff;padding:.5rem 1rem;border-radius:.5rem;font-weight:600}
- .file-label:hover{background:#4f46e5}
- .dark .file-label{background:#818cf8;color:#111827;}
-</style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for loading spinner */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-bottom-color: #6366F1; /* indigo-500 */
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Hide file input */
+        .hidden-file-input {
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+        }
+        /* Style for file input label */
+        .file-input-label {
+            cursor: pointer;
+            display: inline-flex; /* Use inline-flex for alignment */
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #6366F1; /* indigo-600 */
+            color: white;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .file-input-label:hover {
+            background-color: #4F46E5; /* indigo-700 */
+        }
+        /* Custom class for button with icon */
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        /* Custom class for active tab */
+        .tab-button.active-tab {
+            border-color: #6366F1; /* indigo-600 */
+            color: #6366F1;
+            background-color: #EEF2FF; /* indigo-50 */
+        }
+    </style>
 </head>
-<body class="text-gray-800 dark:text-gray-100 transition-colors">
+<body class="bg-gray-50 text-gray-800">
 
-<div class="max-w-lg mx-auto bg-white dark:bg-gray-900 shadow-lg rounded-lg p-4 my-4">
-<header class="text-center mb-4 flex justify-between items-center">
-  <div>
-    <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Calorizen v4</h1>
-    <p class="text-gray-500 dark:text-gray-400 text-sm">AI Wellness & Calorie Companion</p>
-  </div>
-  <button id="themeToggle" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 p-2 rounded-full"><i data-lucide="moon"></i></button>
-</header>
+    <div class="min-h-screen max-w-lg mx-auto p-4 sm:p-6 bg-white shadow-lg rounded-lg my-4">
+        
+        <header class="text-center mb-6">
+            <h1 class="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                Calorizen
+            </h1>
+            <p class="text-gray-500">Your Smart Calorie Companion</p>
+        </header>
 
-<nav class="flex justify-around border-b mb-4 overflow-x-auto text-sm font-medium">
- <button class="tab active flex-1 py-2" data-tab="daily"><i data-lucide="scale" class="w-4 h-4 inline"></i> Daily</button>
- <button class="tab flex-1 py-2" data-tab="manual"><i data-lucide="pencil" class="w-4 h-4 inline"></i> Food</button>
- <button class="tab flex-1 py-2" data-tab="scan"><i data-lucide="camera" class="w-4 h-4 inline"></i> Scan</button>
- <button class="tab flex-1 py-2" data-tab="diet"><i data-lucide="clipboard-list" class="w-4 h-4 inline"></i> Diet</button>
- <button class="tab flex-1 py-2" data-tab="forecast"><i data-lucide="chart-line" class="w-4 h-4 inline"></i> Forecast</button>
- <button class="tab flex-1 py-2" data-tab="mood"><i data-lucide="smile" class="w-4 h-4 inline"></i> MoodCal</button>
-</nav>
+        <nav class="flex justify-around mb-6 border-b border-gray-200">
+            <button data-tab="dailyNeeds" class="tab-button active-tab flex-1 py-3 px-2 text-center text-sm font-medium border-b-2 border-transparent transition-all btn-icon">
+                <i data-lucide="scale" class="w-4 h-4"></i>
+                Daily Needs
+            </button>
+            <button data-tab="manualEntry" class="tab-button flex-1 py-3 px-2 text-center text-sm font-medium border-b-2 border-transparent transition-all text-gray-500 hover:text-gray-700 btn-icon">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+                Food Search
+            </button>
+            <button data-tab="photoEntry" class="tab-button flex-1 py-3 px-2 text-center text-sm font-medium border-b-2 border-transparent transition-all text-gray-500 hover:text-gray-700 btn-icon">
+                <i data-lucide="camera" class="w-4 h-4"></i>
+                Scan Food
+            </button>
+            <button data-tab="dietPlanner" class="tab-button flex-1 py-3 px-2 text-center text-sm font-medium border-b-2 border-transparent transition-all text-gray-500 hover:text-gray-700 btn-icon">
+                <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                Diet Planner
+            </button>
+        </nav>
 
-<main id="app"></main>
-</div>
+        <main>
+            <div id="dailyNeedsTab" class="tab-content space-y-4">
+                <h2 class="text-2xl font-bold text-center text-gray-800">Daily Calorie Needs</h2>
+                <p class="text-sm text-gray-600 text-center">Estimate your daily needs using the Mifflin-St Jeor formula.</p>
+                <form id="dailyNeedsForm" class="space-y-4" autocomplete="off">
+                    <div>
+                        <label for="age" class="block text-sm font-medium text-gray-700">Age</label>
+                        <input type="number" id="age" name="age" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., 25">
+                    </div>
+                    
+                    <div>
+                        <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
+                        <select id="gender" name="gender" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
 
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
- lucide.createIcons();
- const app=document.getElementById("app");
- const tabs=document.querySelectorAll(".tab");
+                    <div>
+                        <label for="height" class="block text-sm font-medium text-gray-700">Height (cm)</label>
+                        <input type="number" id="height" name="height" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., 170">
+                    </div>
 
- // theme toggle
- const btn=document.getElementById("themeToggle");
- btn.onclick=()=>{document.documentElement.classList.toggle("dark");btn.innerHTML=document.documentElement.classList.contains("dark")?"<i data-lucide='sun'></i>":"<i data-lucide='moon'></i>";lucide.createIcons();}
+                    <div>
+                        <label for="weight" class="block text-sm font-medium text-gray-700">Weight (kg)</label>
+                        <input type="number" id="weight" name="weight" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., 70">
+                    </div>
 
- tabs.forEach(t=>t.onclick=()=>{tabs.forEach(x=>x.classList.remove("active"));t.classList.add("active");showTab(t.dataset.tab);});
- showTab("daily");
+                    <div>
+                        <label for="activity" class="block text-sm font-medium text-gray-700">Activity Level</label>
+                        <select id="activity" name="activity" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="sedentary">Sedentary (little or no exercise)</option>
+                            <option value="light">Light (exercise 1-3 days/week)</option>
+                            <option value="moderate">Moderate (exercise 3-5 days/week)</option>
+                            <option value="active">Active (exercise 6-7 days/week)</option>
+                            <option value="very_active">Very Active (hard exercise, physical job)</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2.5 px-4 rounded-lg font-semibold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 btn-icon">
+                        <i data-lucide="calculator" class="w-5 h-5"></i>
+                        Calculate
+                    </button>
+                </form>
 
- function showTab(tab){
-  if(tab==="daily") return renderDaily();
-  if(tab==="manual") return renderManual();
-  if(tab==="scan") return renderScan();
-  if(tab==="diet") return renderDiet();
-  if(tab==="forecast") return renderForecast();
-  if(tab==="mood") return renderMood();
- }
+                <div id="dailyResult" class="hidden mt-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg text-center">
+                    <h3 id="dailyResultText" class="text-lg font-semibold text-indigo-800">Your Maintenance Calories:</h3>
+                    <p class="text-4xl font-bold text-indigo-600"><span id="dailyResultCalories">0</span> <span class="text-2xl">kcal / day</span></p>
+                    <p class="text-sm text-gray-600 mt-2">This is an estimate of your daily calorie needs to maintain your current weight.</p>
+                </div>
+            </div>
 
- /* ----- DAILY NEEDS ----- */
- function renderDaily(){
-  app.innerHTML=`
-   <h2 class='text-2xl font-bold text-center mb-2'>Daily Calorie Needs</h2>
-   <form id='needForm' class='space-y-2'>
-     <input id='age' type='number' placeholder='Age' class='w-full border rounded p-2'>
-     <select id='gender' class='w-full border rounded p-2'><option value='male'>Male</option><option value='female'>Female</option></select>
-     <input id='h' type='number' placeholder='Height (cm)' class='w-full border rounded p-2'>
-     <input id='w' type='number' placeholder='Weight (kg)' class='w-full border rounded p-2'>
-     <select id='act' class='w-full border rounded p-2'>
-       <option value='sedentary'>Sedentary</option>
-       <option value='light'>Light (1-3 days)</option>
-       <option value='moderate'>Moderate (3-5 days)</option>
-       <option value='active'>Active (6-7 days)</option>
-       <option value='very_active'>Very Active</option>
-     </select>
-     <button class='w-full bg-indigo-600 text-white py-2 rounded'>Calculate</button>
-   </form>
-   <div id='res' class='hidden mt-4 text-center bg-indigo-50 dark:bg-indigo-900 p-3 rounded'>
-     <p class='font-semibold text-indigo-700 dark:text-indigo-200'>Maintenance Calories</p>
-     <p class='text-3xl font-bold text-indigo-600 dark:text-indigo-100'><span id='out'></span> kcal/day</p>
-   </div>`;
-   document.getElementById("needForm").onsubmit=e=>{
-     e.preventDefault();
-     const age=+val("age"),h=+val("h"),w=+val("w"),g=val("gender"),a=val("act");
-     if(!age||!h||!w)return alert("Please fill all fields");
-     const bmr=g==="male"?10*w+6.25*h-5*age+5:10*w+6.25*h-5*age-161;
-     const m={sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9};
-     const tdee=Math.round(bmr*m[a]);
-     document.getElementById("out").textContent=tdee;
-     document.getElementById("res").classList.remove("hidden");
-   }
-   function val(id){return document.getElementById(id).value}
- }
+            <div id="manualEntryTab" class="tab-content hidden space-y-4">
+                <h2 class="text-2xl font-bold text-center text-gray-800">Manual Food Entry</h2>
+                <p class="text-sm text-gray-600 text-center">Add food items to your log.</p>
+                <form id="manualEntryForm" class="space-y-4" autocomplete="off">
+                    <div>
+                        <label for="foodName" class="block text-sm font-medium text-gray-700">Food Item</label>
+                        <input type="text" id="foodName" name="foodName" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., Apple or 1 cup of rice">
+                    </div>
+                    <div>
+                        <label for="foodAmount" class="block text-sm font-medium text-gray-700">Amount</label>
+                        <input type="text" id="foodAmount" name="foodAmount" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., 100g or 1 cup or 4">
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-green-600 text-white py-2.5 px-4 rounded-lg font-semibold shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 btn-icon">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                        Add to Log
+                    </button>
+                </form>
 
- /* ----- FOOD LOG ----- */
- let foods=[];
- function renderManual(){
-  app.innerHTML=`
-   <h2 class='text-2xl font-bold text-center mb-2'>Food Log</h2>
-   <form id='fForm' class='space-y-2'>
-     <input id='fname' type='text' placeholder='Food name' class='w-full border rounded p-2'>
-     <input id='fcal' type='number' placeholder='Calories' class='w-full border rounded p-2'>
-     <button class='w-full bg-green-600 text-white py-2 rounded'>Add</button>
-   </form>
-   <ul id='flist' class='mt-3 space-y-1'></ul>
-   <p id='ftotal' class='text-right font-semibold mt-2'></p>`;
-  document.getElementById("fForm").onsubmit=e=>{
-    e.preventDefault();
-    const n=getv("fname"),c=+getv("fcal");if(!n||!c)return;
-    foods.push({n,c});update();
-    e.target.reset();
-  };
-  function update(){
-    const list=document.getElementById("flist");
-    list.innerHTML=foods.map((f,i)=>`<li class='flex justify-between border p-2 rounded'>
-      <span>${f.n}</span><span>${f.c} kcal <button data-i='${i}' class='text-red-500'>x</button></span></li>`).join("");
-    document.getElementById("ftotal").textContent="Total = "+foods.reduce((a,b)=>a+b.c,0)+" kcal";
-    list.querySelectorAll("button").forEach(b=>b.onclick=()=>{foods.splice(b.dataset.i,1);update();});
-  }
-  function getv(id){return document.getElementById(id).value.trim()}
- }
+                <div id="manualResult" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+                    <h3 id="manualResultText" class="text-lg font-semibold text-green-800">Added:</h3>
+                    <p class="text-4xl font-bold text-green-600"><span id="manualResultCalories">0</span> <span class="text-2xl">kcal</span></p>
+                </div>
 
- /* ----- SCAN (MOCK AI) ----- */
- function renderScan(){
-  app.innerHTML=`
-   <h2 class='text-2xl font-bold text-center mb-2'>Scan Food (Mock AI)</h2>
-   <label for='photo' class='file-label'><i data-lucide='camera'></i>Upload Photo</label>
-   <input id='photo' type='file' accept='image/*' class='hidden'>
-   <img id='prev' class='hidden mt-3 rounded-lg border mx-auto max-w-xs'>
-   <form id='scanForm' class='mt-3 space-y-2'>
-    <input id='amt' type='text' placeholder='Amount (e.g. 100g)' class='w-full border rounded p-2'>
-    <button class='w-full bg-blue-600 text-white py-2 rounded'>Analyze</button>
-   </form>
-   <div id='sres' class='hidden mt-3 p-3 text-center bg-blue-50 dark:bg-blue-900 rounded'></div>`;
-  lucide.createIcons();
-  const f=document.getElementById("photo"),p=document.getElementById("prev"),r=document.getElementById("sres");
-  f.onchange=()=>{if(f.files[0]){const reader=new FileReader();reader.onload=e=>{p.src=e.target.result;p.classList.remove("hidden");};reader.readAsDataURL(f.files[0]);}};
-  document.getElementById("scanForm").onsubmit=e=>{
-    e.preventDefault();
-    if(!f.files[0])return alert("Upload a photo");
-    const cal=Math.floor(120+Math.random()*380);
-    r.innerHTML=`<p class='font-semibold text-blue-700 dark:text-blue-200'>Detected Food (Sample)</p>
-    <p class='text-2xl font-bold text-blue-600 dark:text-blue-100'>≈ ${cal} kcal</p>`;
-    r.classList.remove("hidden");
-  };
- }
+                <div id="manualLogContainer" class="hidden mt-6 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-800">Today's Log</h3>
+                        <button id="clearManualLog" type="button" class="text-sm font-medium text-red-500 hover:text-red-700 transition duration-150 btn-icon">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            Clear All
+                        </button>
+                    </div>
+                    <ul id="manualFoodList" class="space-y-2">
+                        </ul>
+                    <div class="pt-3 border-t border-gray-200 text-right">
+                        <p class="text-xl font-bold text-gray-900">Total: <span id="manualTotalCalories" class="text-green-600">0</span> kcal</p>
+                    </div>
+                </div>
+            </div>
 
- /* ----- DIET PLANNER ----- */
- function renderDiet(){
-  app.innerHTML=`
-   <h2 class='text-2xl font-bold text-center mb-2'>AI Diet Planner (Offline)</h2>
-   <form id='dForm' class='space-y-2'>
-     <select id='goal' class='w-full border rounded p-2'>
-       <option value='lose'>Lose Weight</option>
-       <option value='gain'>Gain Weight</option>
-       <option value='muscle'>Build Muscle</option>
-     </select>
-     <button class='w-full bg-purple-600 text-white py-2 rounded'>Generate</button>
-   </form>
-   <div id='dout' class='hidden mt-3 p-3 bg-purple-50 dark:bg-purple-900 rounded'></div>`;
-  document.getElementById("dForm").onsubmit=e=>{
-    e.preventDefault();
-    const g=document.getElementById("goal").value;
-    const p={lose:["Oats + berries","Grilled chicken + salad","Brown rice + veggies"],
-             gain:["Peanut butter toast","Pasta + chicken","Smoothie + banana & milk"],
-             muscle:["Eggs + avocado","Rice + salmon","Protein shake + nuts"]};
-    document.getElementById("dout").innerHTML=p[g].map(i=>"• "+i).join("<br>");
-    document.getElementById("dout").classList.remove("hidden");
-  };
- }
+            <div id="photoEntryTab" class="tab-content hidden space-y-4">
+                <h2 class="text-2xl font-bold text-center text-gray-800">Scan Your Food</h2>
+                <p class="text-sm text-gray-600 text-center">Use your camera or upload a photo.</p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="showUploadBtn" type="button" class="file-input-label w-full">
+                        <i data-lucide="upload" class="w-5 h-5 mr-2"></i>
+                        Upload Photo
+                    </button>
+                    <button id="showCameraBtn" type="button" class="w-full bg-gray-600 text-white py-2.5 px-4 rounded-lg font-semibold shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition duration-200 btn-icon">
+                        <i data-lucide="camera" class="w-5 h-5 mr-2"></i>
+                        Use Camera
+                    </button>
+                </div>
+                
+                <input type="file" id="fileInput" name="fileInput" accept="image/*" class="hidden-file-input">
+                
+                <div id="uploadPreviewContainer" class="hidden text-center">
+                    <p id="fileName" class="text-sm text-gray-500 mb-2"></p>
+                    <div class="flex justify-center">
+                        <img id="imagePreview" src="" alt="Food Preview" class="w-full max-w-xs rounded-lg shadow-md border border-gray-200">
+                    </div>
+                </div>
 
- /* ----- FORECAST ----- */
- function renderForecast(){
-  app.innerHTML=`
-   <h2 class='text-2xl font-bold text-center mb-2'>SmartCal Forecast</h2>
-   <canvas id='chart' height='200'></canvas>`;
-  const ctx=document.getElementById("chart");
-  const vals=[2000,2200,2100,2500,2300,2400,2600];
-  new Chart(ctx,{type:'line',data:{labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
-   datasets:[{data:vals,borderColor:"#6366f1",fill:false,tension:.3}]},
-   options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
- }
+                <div id="cameraContainer" class="hidden space-y-4">
+                    <div class="flex justify-center relative">
+                        <video id="videoStream" autoplay playsinline class="w-full max-w-xs rounded-lg shadow-md border border-gray-200"></video>
+                        <canvas id="photoCanvas" class="hidden w-full max-w-xs rounded-lg shadow-md border border-gray-200"></canvas>
+                    </div>
+                    <button id="snapBtn" type="button" class="w-full bg-red-600 text-white py-2.5 px-4 rounded-lg font-semibold shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-200 btn-icon">
+                        <i data-lucide="aperture" class="w-5 h-5"></i>
+                        Snap image with the result for the food 
+                    </button>
+                </div>
 
- /* ----- MOODCAL (NEW FEATURE) ----- */
- function renderMood(){
-  app.innerHTML=`
-   <h2 class='text-2xl font-bold text-center mb-2'>Mood-Based Calorie Predictor</h2>
-   <p class='text-center text-sm text-gray-500 mb-2'>Choose your current mood 👇</p>
-   <div id='moods' class='flex justify-around text-3xl mb-4'>
-     <button data-mood='Happy'>😃</button>
-     <button data-mood='Neutral'>😐</button>
-     <button data-mood='Sad'>😔</button>
-     <button data-mood='Angry'>😡</button>
-     <button data-mood='Tired'>😴</button>
-   </div>
-   <div id='mres' class='hidden bg-yellow-50 dark:bg-yellow-900 p-4 rounded text-center'></div>`;
-  document.querySelectorAll("#moods button").forEach(btn=>{
-    btn.onclick=()=>{
-      const mood=btn.dataset.mood;
-      const bias=Math.floor((Math.random()*2-1)*300);
-      const foods={
-        Happy:["Balanced Meal","Fresh Salad","Smoothie"],
-        Neutral:["Grilled Fish","Brown Rice","Soup"],
-        Sad:["Dark Chocolate","Oatmeal","Comfort Soup"],
-        Angry:["Herbal Tea","Fruits","Yogurt"],
-        Tired:["Protein Shake","Eggs","Banana"]
-      };
-      const r=document.getElementById("mres");
-      r.innerHTML=`<p class='font-semibold text-yellow-800 dark:text-yellow-100 mb-1'>Detected Mood: ${mood}</p>
-      <p class='text-lg font-bold ${bias>=0?"text-green-600":"text-red-600"}'>
-      ${bias>=0?"+":"−"}${Math.abs(bias)} kcal tendency</p>
-      <p class='mt-2 text-sm'>Suggested foods:<br>${foods[mood].join(", ")}</p>`;
-      r.classList.remove("hidden");
-    }
-  });
- }
-});
-</script>
+                <form id="photoEntryForm" class="hidden space-y-4" autocomplete="off">
+                    
+                    <div id="ingredientsContainer" class="hidden">
+                        <label for="photoIngredients" class="block text-sm font-medium text-gray-700">Ingredients</label>
+                        <textarea id="photoIngredients" name="photoIngredients" rows="3" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., 100g chicken, 1 cup rice, 1 tbsp olive oil"></textarea>
+                    </div>
+
+                    <div id="foodConditionContainer" class="hidden">
+                        <label for="foodCondition" class="block text-sm font-medium text-gray-700">Food Condition</label>
+                        <select id="foodCondition" name="foodCondition" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="as is">As Pictured</option>
+                            <option value="raw">Raw</option>
+                            <option value="cooked">Cooked (General either raw of cooked)</option>
+                            <option value="fried">Fried</option>
+                            <option value="boiled">Boiled</option>
+                            <option value="steamed">Steamed</option>
+                            <option value="roasted">Roasted</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="photoAmount" class="block text-sm font-medium text-gray-700">Amount / Serving Size</label>
+                        <input type="text" id="photoAmount" name="photoAmount" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., 100g or 1 cup">
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg font-semibold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 btn-icon">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                        Add to Logf
+                    </button>
+                </form>
+
+                <div id="photoResult" class="hidden mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+                    <h3 id="photoResultText" class="text-lg font-semibold text-blue-800">Added:</h3>
+                    <p class="text-4xl font-bold text-blue-600"><span id="photoResultCalories">0</span> <span class="text-2xl">kcal</span></p>
+                </div>
+
+                <div id="photoLogContainer" class="hidden mt-6 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-800">Today's Scan Log</h3>
+                        <button id="clearPhotoLog" type="button" class="text-sm font-medium text-red-500 hover:text-red-700 transition duration-150 btn-icon">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            Clear All
+                        </button>
+                    </div>
+                    <ul id="photoFoodList" class="space-y-2">
+                        </ul>
+                    <div class="pt-3 border-t border-gray-200 text-right">
+                        <p class="text-xl font-bold text-gray-900">Total: <span id="photoTotalCalories" class="text-blue-600">0</span> kcal</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dietPlannerTab" class="tab-content hidden space-y-6">
+                
+                <section class="space-y-4">
+                    <h2 class="text-2xl font-bold text-center text-gray-800">Quick Food Suggestions</h2>
+                    <p class="text-sm text-gray-600 text-center">Get food ideas based on your goal.</p>
+                    <form id="foodSuggestForm" class="space-y-4" autocomplete="off">
+                        <div>
+                            <label for="suggestGoal" class="block text-sm font-medium text-gray-700">My goal is to...</label>
+                            <select id="suggestGoal" name="suggestGoal" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="lose weight">Lose Weight</option>
+                                <option value="gain weight">Gain Weight</option>
+                                <option value="build muscle">Build Muscle</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-purple-600 text-white py-2.5 px-4 rounded-lg font-semibold shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-200 btn-icon">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i>
+                            Get Suggestions
+                        </button>
+                    </form>
+                    <div id="suggestionResult" class="hidden mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                        <h3 class="text-lg font-semibold text-purple-800 mb-2">Here are some suggestions:</h3>
+                        <ul id="suggestionList" class="space-y-1 list-disc list-inside text-purple-700">
+                            </ul>
+                    </div>
+                </section>
+
+                <hr class="border-t-2 border-gray-100 my-6">
+
+                <section class="space-y-4">
+                    <h2 class="text-2xl font-bold text-center text-gray-800">Generate a Diet Plan</h2>
+                    <p class="text-sm text-gray-600 text-center">Get a full 7-day plan.</p>
+                    <form id="dietPlanForm" class="space-y-4" autocomplete="off">
+                        <div>
+                            <label for="targetCalories" class="block text-sm font-medium text-gray-700">My Daily Calorie Target (kcal)</label>
+                            <input type="number" id="targetCalories" name="targetCalories" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., 2000">
+                            <p class="text-xs text-gray-500 mt-1">Calculate your maintenance calories in "Daily Needs" tab first!</p>
+                        </div>
+                        <div>
+                            <label for="planGoal" class="block text-sm font-medium text-gray-700">My Goal</label>
+                            <input type="text" id="planGoal" name="planGoal" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., Lose 5kg or Gain 2kg of muscle">
+                        </div>
+                        <div>
+                            <label for="planTimeframe" class="block text-sm font-medium text-gray-700">Timeframe</label>
+                            <input type="text" id="planTimeframe" name="planTimeframe" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., in 2 months">
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-indigo-600 text-white py-2.5 px-4 rounded-lg font-semibold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 btn-icon">
+                            <i data-lucide="file-plus" class="w-5 h-5"></i>
+                            Generate Plan
+                        </button>
+                    </form>
+                    <div id="dietPlanResult" class="hidden mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg" style="white-space: pre-wrap; word-wrap: break-word;">
+                        </div>
+                </section>
+            </div>
+
+            <div id="loadingIndicator" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
+                    <span class="loader mb-4"></span>
+                    <p class="text-lg font-semibold text-gray-700">Analyzing...</p>
+                </div>
+            </div>
+
+            <div id="errorIndicator" class="hidden mt-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg">
+                <p id="errorText">An error occurred. Please try again.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Lucide Icons ---
+            lucide.createIcons();
+            
+            // --- State ---
+            let manualLog = [];
+            let photoLog = [];
+            let maintenanceCalories = 0; // State for TDEE
+            let stream = null; // To store the media stream
+            let photoEntryMode = 'upload'; // 'upload' or 'camera'
+
+            // --- Local Food Database ---
+            const localFoodDB = {
+                // Fruits
+                "1 apple": { foodName: "Apple (Medium)", calories: 95, servingSize: "1 medium" },
+                "100g apple": { foodName: "Apple", calories: 52, servingSize: "100g" },
+                "1 banana": { foodName: "Banana (Medium)", calories: 105, servingSize: "1 medium" },
+                "100g banana": { foodName: "Banana", calories: 89, servingSize: "100g" },
+                "1 orange": { foodName: "Orange (Medium)", calories: 62, servingSize: "1 medium" },
+                "100g orange": { foodName: "Orange", calories: 47, servingSize: "100g" },
+                "100g grapes": { foodName: "Grapes", calories: 69, servingSize: "100g" },
+                "1 cup grapes": { foodName: "Grapes", calories: 104, servingSize: "1 cup" },
+                "100g strawberries": { foodName: "Strawberries", calories: 32, servingSize: "100g" },
+                "1 cup strawberries": { foodName: "Strawberries", calories: 49, servingSize: "1 cup" },
+                "100g blueberries": { foodName: "Blueberries", calories: 57, servingSize: "100g" },
+                "1 cup blueberries": { foodName: "Blueberries", calories: 84, servingSize: "1 cup" },
+                "100g avocado": { foodName: "Avocado", calories: 160, servingSize: "100g" },
+                // Vegetables
+                "100g broccoli": { foodName: "Broccoli", calories: 34, servingSize: "100g" },
+                "1 cup broccoli": { foodName: "Broccoli", calories: 31, servingSize: "1 cup" },
+                "100g spinach": { foodName: "Spinach", calories: 23, servingSize: "100g" },
+                "1 cup spinach": { foodName: "Spinach", calories: 7, servingSize: "1 cup" },
+                "100g carrot": { foodName: "Carrot", calories: 41, servingSize: "100g" },
+                "1 carrot": { foodName: "Carrot (Medium)", calories: 25, servingSize: "1 medium" },
+                "100g potato": { foodName: "Potato (Cooked)", calories: 77, servingSize: "100g" },
+                "1 potato": { foodName: "Potato (Medium)", calories: 163, servingSize: "1 medium" },
+                "100g tomato": { foodName: "Tomato", calories: 18, servingSize: "100g" },
+                "1 tomato": { foodName: "Tomato (Medium)", calories: 22, servingSize: "1 medium" },
+                "100g cucumber": { foodName: "Cucumber", calories: 15, servingSize: "100g" },
+                // Grains
+                "100g rice": { foodName: "Rice (Cooked)", calories: 130, servingSize: "100g" },
+                "1 cup rice": { foodName: "Rice (Cooked)", calories: 204, servingSize: "1 cup" },
+                "100g brown rice": { foodName: "Brown Rice (Cooked)", calories: 111, servingSize: "100g" },
+                "1 cup brown rice": { foodName: "Brown Rice (Cooked)", calories: 216, servingSize: "1 cup" },
+                "100g pasta": { foodName: "Pasta (Cooked)", calories: 131, servingSize: "100g" },
+                "1 cup pasta": { foodName: "Pasta (Cooked)", calories: 196, servingSize: "1 cup" },
+                "100g white bread": { foodName: "White Bread", calories: 265, servingSize: "100g" },
+                "1 slice white bread": { foodName: "White Bread", calories: 79, servingSize: "1 slice" },
+                "100g whole wheat bread": { foodName: "Whole Wheat Bread", calories: 247, servingSize: "100g" },
+                "1 slice whole wheat bread": { foodName: "Whole Wheat Bread", calories: 81, servingSize: "1 slice" },
+                "100g oats": { foodName: "Oats (Dry)", calories: 389, servingSize: "100g" },
+                "1 cup oats": { foodName: "Oats (Cooked)", calories: 166, servingSize: "1 cup" },
+                // Protein
+                "100g chicken breast": { foodName: "Chicken Breast (Cooked)", calories: 165, servingSize: "100g" },
+                "100g salmon": { foodName: "Salmon (Cooked)", calories: 208, servingSize: "100g" },
+                "100g beef": { foodName: "Beef (Ground, 90% lean)", calories: 184, servingSize: "100g" },
+                "1 large egg": { foodName: "Egg (Boiled)", calories: 78, servingSize: "1 large" },
+                "1 egg": { foodName: "Egg (Boiled)", calories: 78, servingSize: "1 large" },
+                "100g tofu": { foodName: "Tofu", calories: 76, servingSize: "100g" },
+                "100g black beans": { foodName: "Black Beans (Cooked)", calories: 132, servingSize: "100g" },
+                "100g lentils": { foodName: "Lentils (Cooked)", calories: 116, servingSize: "100g" },
+                // Dairy & Nuts
+                "100ml milk": { foodName: "Milk (Whole)", calories: 42, servingSize: "100ml" },
+                "1 cup milk": { foodName: "Milk (Whole)", calories: 103, servingSize: "1 cup" },
+                "100g cheddar cheese": { foodName: "Cheddar Cheese", calories: 404, servingSize: "100g" },
+                "100g yogurt": { foodName: "Yogurt (Plain)", calories: 59, servingSize: "100g" },
+                "100g almonds": { foodName: "Almonds", calories: 579, servingSize: "100g" },
+                "100g peanuts": { foodName: "Peanuts", calories: 567, servingSize: "100g" },
+                "100g peanut butter": { foodName: "Peanut Butter", calories: 588, servingSize: "100g" },
+                // Other
+                "100g dark chocolate": { foodName: "Dark Chocolate (70-85%)", calories: 600, servingSize: "100g" },
+                "1 slice pizza": { foodName: "Pizza (Pepperoni)", calories: 285, servingSize: "1 slice" },
+            };
+
+            // --- Tab Navigation Elements ---
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // --- DOM Elements ---
+            const dailyNeedsForm = document.getElementById('dailyNeedsForm');
+            const dailyResult = document.getElementById('dailyResult');
+            const dailyResultText = document.getElementById('dailyResultText');
+            const dailyResultCalories = document.getElementById('dailyResultCalories');
+
+            // Manual Entry Elements
+            const manualEntryForm = document.getElementById('manualEntryForm');
+            const manualResult = document.getElementById('manualResult');
+            const manualResultText = document.getElementById('manualResultText');
+            const manualResultCalories = document.getElementById('manualResultCalories');
+            const manualLogContainer = document.getElementById('manualLogContainer');
+            const manualFoodList = document.getElementById('manualFoodList');
+            const manualTotalCalories = document.getElementById('manualTotalCalories');
+            const clearManualLog = document.getElementById('clearManualLog');
+
+            // Photo Entry Elements
+            const photoEntryForm = document.getElementById('photoEntryForm');
+            const fileInput = document.getElementById('fileInput');
+            const fileName = document.getElementById('fileName');
+            const imagePreview = document.getElementById('imagePreview');
+            const photoResult = document.getElementById('photoResult');
+            const photoResultText = document.getElementById('photoResultText');
+            const photoResultCalories = document.getElementById('photoResultCalories');
+            const photoLogContainer = document.getElementById('photoLogContainer');
+            const photoFoodList = document.getElementById('photoFoodList');
+            const photoTotalCalories = document.getElementById('photoTotalCalories');
+            const clearPhotoLog = document.getElementById('clearPhotoLog');
+            const foodConditionSelect = document.getElementById('foodCondition');
+            
+            // --- NEW Photo Elements ---
+            const showUploadBtn = document.getElementById('showUploadBtn');
+            const showCameraBtn = document.getElementById('showCameraBtn');
+            const uploadPreviewContainer = document.getElementById('uploadPreviewContainer');
+            const cameraContainer = document.getElementById('cameraContainer');
+            const videoStream = document.getElementById('videoStream');
+            const photoCanvas = document.getElementById('photoCanvas');
+            const snapBtn = document.getElementById('snapBtn');
+            const ingredientsContainer = document.getElementById('ingredientsContainer');
+            const photoIngredients = document.getElementById('photoIngredients');
+            const foodConditionContainer = document.getElementById('foodConditionContainer');
+
+            // AI Diet Planner Elements
+            const foodSuggestForm = document.getElementById('foodSuggestForm');
+            const suggestionResult = document.getElementById('suggestionResult');
+            const suggestionList = document.getElementById('suggestionList');
+            const dietPlanForm = document.getElementById('dietPlanForm');
+            const dietPlanResult = document.getElementById('dietPlanResult');
+
+            // Global Elements
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorIndicator = document.getElementById('errorIndicator');
+            const errorText = document.getElementById('errorText');
+
+            // --- Helper Functions ---
+            function showLoading() { loadingIndicator.classList.remove('hidden'); }
+            function hideLoading() { loadingIndicator.classList.add('hidden'); }
+            
+            function showError(message) {
+                errorText.textContent = message || 'An error occurred. Please try again.';
+                errorIndicator.classList.remove('hidden');
+            }
+            function hideError() { errorIndicator.classList.add('hidden'); }
+            
+            function hideAllResults() {
+                dailyResult.classList.add('hidden');
+                manualResult.classList.add('hidden');
+                photoResult.classList.add('hidden');
+                suggestionResult.classList.add('hidden');
+                dietPlanResult.classList.add('hidden');
+                hideError();
+            }
+
+            // --- NEW: Camera Helper Functions ---
+            async function startCamera() {
+                if (stream) stopCamera(); // Stop any existing stream
+                try {
+                    // Try to get the back camera first
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                } catch (err) {
+                    console.warn("Back camera not found, trying any camera:", err);
+                    try {
+                        // If back camera fails, try to get any camera
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    } catch (finalErr) {
+                        console.error("Error accessing camera:", finalErr);
+                        showError("Could not access camera. Please check permissions.");
+                        stream = null;
+                        return; // Exit if no camera is found
+                    }
+                }
+                
+                // If we have a stream
+                videoStream.srcObject = stream;
+                videoStream.classList.remove('hidden');
+                photoCanvas.classList.add('hidden'); // Hide canvas, show video
+                cameraContainer.classList.remove('hidden');
+                snapBtn.classList.remove('hidden');
+            }
+
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                stream = null;
+                videoStream.srcObject = null;
+                cameraContainer.classList.add('hidden');
+                snapBtn.classList.add('hidden');
+            }
+
+            function snapPhoto() {
+                const context = photoCanvas.getContext('2d');
+                photoCanvas.width = videoStream.videoWidth;
+                photoCanvas.height = videoStream.videoHeight;
+                context.drawImage(videoStream, 0, 0, photoCanvas.width, photoCanvas.height);
+                photoCanvas.classList.remove('hidden');
+                videoStream.classList.add('hidden');
+                snapBtn.classList.add('hidden'); // Hide snap button after taking
+            }
+
+            // Helper: Convert file to base64
+            function fileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => {
+                        // Remove the data:image/...;base64, part
+                        const base64Data = reader.result.split(',')[1];
+                        resolve(base64Data);
+                    };
+                    reader.onerror = error => reject(error);
+                });
+            }
+
+            // --- Tab Navigation ---
+            // Set initial active state
+            tabButtons.forEach(btn => {
+                if (btn.classList.contains('active-tab')) {
+                    btn.classList.add('active-tab');
+                } else {
+                    btn.classList.remove('active-tab');
+                }
+            });
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.dataset.tab;
+
+                    // --- ADDED: Stop camera on tab switch ---
+                    if (stream) {
+                        stopCamera();
+                    }
+                    // --- END ADDED ---
+
+                    // Update button styles
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('active-tab');
+                        btn.classList.add('text-gray-500', 'hover:text-gray-700');
+                    });
+                    button.classList.add('active-tab');
+                    button.classList.remove('text-gray-500', 'hover:text-gray-700');
+
+                    // Show/hide content
+                    tabContents.forEach(content => {
+                        if (content.id === `${tabId}Tab`) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+
+                    // Pre-fill diet planner calories if available
+                    if (tabId === 'dietPlanner' && maintenanceCalories > 0) {
+                        document.getElementById('targetCalories').value = maintenanceCalories;
+                    }
+
+                    // Hide all result/error blocks on tab switch
+                    hideAllResults();
+                });
+            });
+
+            // --- Feature 1: Daily Needs Calculator ---
+            dailyNeedsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                hideAllResults();
+
+                const age = parseFloat(document.getElementById('age').value);
+                const gender = document.getElementById('gender').value;
+                const height = parseFloat(document.getElementById('height').value);
+                const weight = parseFloat(document.getElementById('weight').value);
+                const activity = document.getElementById('activity').value;
+
+                if (isNaN(age) || isNaN(height) || isNaN(weight) || age <= 0 || height <= 0 || weight <= 0) {
+                    showError("Please enter valid, positive numbers for age, height, and weight.");
+                    return;
+                }
+
+                let bmr;
+                if (gender === 'male') {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+                } else {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+                }
+
+                const activityMultipliers = {
+                    'sedentary': 1.2,
+                    'light': 1.375,
+                    'moderate': 1.55,
+                    'active': 1.725,
+                    'very_active': 1.9
+                };
+
+                const tdee = bmr * activityMultipliers[activity];
+                
+                maintenanceCalories = Math.round(tdee);
+                dailyResultCalories.textContent = maintenanceCalories;
+                dailyResult.classList.remove('hidden');
+            });
+
+            // --- AI/Gemini API Configuration ---
+            const API_KEY = ""; // <-- IMPORTANT: Add your API key here
+            
+            // Use a single endpoint for the multimodal model
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+            
+            const calorieResponseSchema = {
+                type: "OBJECT",
+                properties: {
+                    "foodName": { "type": "STRING" },
+                    "calories": { "type": "NUMBER" },
+                    "servingSize": { "type": "STRING" }
+                },
+                required: ["foodName", "calories", "servingSize"]
+            };
+
+            const systemPrompt = `You are a calorie calculation assistant. The user will provide a food item, an amount, and sometimes an image. Identify the food and return the total calories based on all provided information. Provide your answer as a JSON object with this exact schema: ${JSON.stringify(calorieResponseSchema)}. For example: {"foodName": "Fried Chicken Breast", "calories": 320, "servingSize": "100g"}. Only return the JSON object and nothing else.`;
+            
+            async function fetchWithBackoff(apiUrl, payload, maxRetries = 5) {
+                let delay = 1000;
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            if (response.status === 429) {
+                                console.warn(`Rate limited. Retrying in ${delay}ms...`);
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                                delay *= 2; 
+                                continue;
+                            }
+                            const errorData = await response.json();
+                            throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorData.error.message}`);
+                        }
+                        
+                        return await response.json();
+                        
+                    } catch (error) {
+                        if (i === maxRetries - 1) {
+                            throw error;
+                        }
+                        console.warn(`Fetch error: ${error.message}. Retrying in ${delay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    }
+                }
+                throw new Error("API request failed after all retries.");
+            }
+
+            // This function is for TEXT-ONLY requests
+            async function getManualCalories(food, amount) {
+                if (API_KEY === "") {
+                    console.warn("API_KEY is missing. Returning mock data for manual calories.");
+                    const mockResponse = {
+                        foodName: `${food} (Offline Sample)`,
+                        calories: 123,
+                        servingSize: amount
+                    };
+                    const mockResult = {
+                        candidates: [{
+                            content: {
+                                parts: [{ text: JSON.stringify(mockResponse) }]
+                            }
+                        }]
+                    };
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    return mockResult;
+                }
+                
+                const userPrompt = `Calculate calories for: Food: ${food}, Amount: ${amount}.`;
+                
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: calorieResponseSchema
+                    }
+                };
+                
+                return await fetchWithBackoff(API_URL, payload);
+            }
+
+            // This function is for IMAGE + TEXT requests
+            async function getPhotoCalories(base64Data, mimeType, amount, condition) {
+                if (API_KEY === "") {
+                    console.warn("API_KEY is missing. Returning mock data for photo calories.");
+                    const mockResponse = {
+                        foodName: "Scanned Food (Offline Sample)",
+                        calories: 234,
+                        servingSize: amount
+                    };
+                    const mockResult = {
+                        candidates: [{
+                            content: {
+                                parts: [{ text: JSON.stringify(mockResponse) }]
+                            }
+                        }]
+                    };
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    return mockResult;
+                }
+                
+                const userPrompt = `Identify the food in this image. It is ${condition}. Calculate calories for: ${amount} of this food.`;
+                
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: userPrompt },
+                            { inlineData: { mimeType: mimeType, data: base64Data } }
+                        ]
+                    }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: calorieResponseSchema
+                    }
+                };
+
+                return await fetchWithBackoff(API_URL, payload);
+            }
+
+            // --- Feature 2: Manual Food Entry ---
+            function renderManualLog() {
+                if (manualLog.length === 0) {
+                    manualLogContainer.classList.add('hidden');
+                    return;
+                }
+                manualLogContainer.classList.remove('hidden');
+                manualFoodList.innerHTML = '';
+                let total = 0;
+                
+                manualLog.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'p-3 flex justify-between items-center border rounded-lg shadow-sm bg-white';
+                    li.innerHTML = `
+                        <div>
+                            <span class="font-medium text-gray-800">${item.foodName}</span>
+                            <span class="text-sm text-gray-500">(${item.servingSize})</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <strong class="text-green-600">${Math.round(item.calories)} kcal</strong>
+                            <button data-id="${item.id}" class="remove-manual-item text-red-400 hover:text-red-600 transition-colors">
+                                <i data-lucide="x-circle" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    `;
+                    manualFoodList.appendChild(li);
+                    total += item.calories;
+                });
+                manualTotalCalories.textContent = Math.round(total);
+                lucide.createIcons();
+            }
+
+            manualEntryForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideAllResults();
+
+                const food = document.getElementById('foodName').value.toLowerCase().trim();
+                const amount = document.getElementById('foodAmount').value.toLowerCase().trim();
+
+                const foodKey = `${amount} ${food}`.toLowerCase().trim().replace(/\s+/g, ' ');
+                let localMatch = localFoodDB[foodKey];
+
+                if (!localMatch) {
+                    const quantity = parseFloat(amount);
+                    const unit = amount.replace(String(quantity), '').trim(); // Safer way to get unit
+
+                    if (!isNaN(quantity) && quantity > 0) {
+                        if (unit === "g" || unit === "ml") {
+                            const baseKey = `100${unit} ${food}`.replace(/\s+/g, ' ');
+                            const baseItem = localFoodDB[baseKey];
+
+                            if (baseItem) {
+                                const multiplier = quantity / 100;
+                                localMatch = {
+                                    foodName: `${amount} ${baseItem.foodName.replace('100g', '').replace('100ml', '').trim()}`,
+                                    calories: baseItem.calories * multiplier,
+                                    servingSize: amount,
+                                    id: Date.now()
+                                };
+                            }
+                        } else if (unit === "" && quantity > 1) {
+                            let singleFoodKey = `1 ${food}`.replace(/\s+/g, ' ');
+                            let singleMatch = localFoodDB[singleFoodKey];
+                            
+                            if (singleMatch) {
+                                const pluralName = singleMatch.foodName.replace('(Medium)', '').trim() + (food.endsWith('s') ? '' : 's');
+                                localMatch = {
+                                    foodName: `${quantity} ${pluralName}`,
+                                    calories: singleMatch.calories * quantity,
+                                    servingSize: `${quantity} item(s)`,
+                                    id: Date.now()
+                                };
+                            } else {
+                                singleFoodKey = `1 large ${food}`.replace(/\s+/g, ' ');
+                                singleMatch = localFoodDB[singleFoodKey];
+                                if (singleMatch) {
+                                    const pluralName = singleMatch.foodName.replace('(Large)', '').trim() + (food.endsWith('s') ? '' : 's');
+                                    localMatch = {
+                                        foodName: `${quantity} ${pluralName}`,
+                                        calories: singleMatch.calories * quantity,
+                                        servingSize: `${quantity} item(s)`,
+                                        id: Date.now()
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (localMatch) {
+                    const data = { ...localMatch, id: localMatch.id || Date.now() };
+                    manualLog.push(data);
+                    renderManualLog();
+                    manualResultText.textContent = `Added: ${data.foodName} (${data.servingSize})`;
+                    manualResultCalories.textContent = Math.round(data.calories);
+                    manualResult.classList.remove('hidden');
+                    manualEntryForm.reset();
+                    return;
+                }
+
+                showLoading();
+                try {
+                    const originalFood = document.getElementById('foodName').value;
+                    const originalAmount = document.getElementById('foodAmount').value;
+                    
+                    const result = await getManualCalories(originalFood, originalAmount);
+                    const data = JSON.parse(result.candidates[0].content.parts[0].text);
+                    data.id = Date.now(); 
+                    manualLog.push(data);
+                    renderManualLog();
+                    manualResultText.textContent = `Added: ${data.foodName} (${data.servingSize})`;
+                    manualResultCalories.textContent = Math.round(data.calories);
+                    manualResult.classList.remove('hidden');
+                    manualEntryForm.reset();
+                } catch (error) {
+                    console.error("Gemini API Error (Manual):", error);
+                    showError("Could not find calories for this item. Please try a different query.");
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            clearManualLog.addEventListener('click', () => {
+                manualLog = [];
+                renderManualLog();
+                manualResult.classList.add('hidden');
+            });
+
+            manualFoodList.addEventListener('click', (e) => {
+                const removeButton = e.target.closest('.remove-manual-item');
+                if (removeButton) {
+                    const idToRemove = Number(removeButton.dataset.id);
+                    manualLog = manualLog.filter(item => item.id !== idToRemove);
+                    renderManualLog();
+                }
+            });
+
+            // --- Feature 3: Photo Food Entry ---
+
+            // --- NEW: Listeners for mode buttons ---
+            showUploadBtn.addEventListener('click', () => {
+                photoEntryMode = 'upload';
+                stopCamera();
+                
+                // Show/hide relevant fields
+                photoEntryForm.classList.remove('hidden');
+                foodConditionContainer.classList.remove('hidden');
+                ingredientsContainer.classList.add('hidden');
+                uploadPreviewContainer.classList.remove('hidden'); // Show upload section
+                
+                fileInput.click(); // Open file dialog
+            });
+
+            showCameraBtn.addEventListener('click', () => {
+                photoEntryMode = 'camera';
+                startCamera();
+
+                // Show/hide relevant fields
+                photoEntryForm.classList.remove('hidden');
+                foodConditionContainer.classList.add('hidden');
+                ingredientsContainer.classList.remove('hidden');
+                uploadPreviewContainer.classList.add('hidden'); // Hide upload section
+
+                // Clear any old file selection
+                fileInput.value = null;
+                fileName.textContent = "";
+                imagePreview.classList.add('hidden');
+                imagePreview.src = "";
+            });
+            
+            snapBtn.addEventListener('click', snapPhoto);
+
+            // File input listeners (for upload mode)
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files[0];
+                if (file) {
+                    fileName.textContent = file.name;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreview.src = e.target.result;
+                        imagePreview.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                    uploadPreviewContainer.classList.remove('hidden');
+                } else {
+                    fileName.textContent = "";
+                    imagePreview.classList.add('hidden');
+                    imagePreview.src = "";
+                }
+            });
+
+            // MODIFIED: Render function now handles snapped images
+            function renderPhotoLog() {
+                if (photoLog.length === 0) {
+                    photoLogContainer.classList.add('hidden');
+                    return;
+                }
+                photoLogContainer.classList.remove('hidden');
+                photoFoodList.innerHTML = '';
+                let total = 0;
+                
+                photoLog.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'p-3 flex justify-between items-center border rounded-lg shadow-sm bg-white';
+                    
+                    // ADDED: Check for a saved base64 image (from camera snap)
+                    let imageHtml = item.imageBase64 
+                        ? `<img src="${item.imageBase64}" alt="${item.foodName}" class="w-12 h-12 object-cover rounded-md mr-3">` 
+                        : ''; // No image if it was a file upload
+
+                    li.innerHTML = `
+                        <div class="flex items-center flex-1 min-w-0">
+                            ${imageHtml}
+                            <div class="min-w-0">
+                                <span class="font-medium text-gray-800 truncate block">${item.foodName}</span>
+                                <span class="text-sm text-gray-500">(${item.servingSize})</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 ml-2">
+                            <strong class="text-blue-600">${Math.round(item.calories)} kcal</strong>
+                            <button data-id="${item.id}" class="remove-photo-item text-red-400 hover:text-red-600 transition-colors">
+                                <i data-lucide="x-circle" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    `;
+                    photoFoodList.appendChild(li);
+                    total += item.calories;
+                });
+                photoTotalCalories.textContent = Math.round(total);
+                lucide.createIcons();
+            }
+
+            // HEAVILY MODIFIED: Submit handler now checks the mode
+            photoEntryForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideAllResults();
+                
+                const amount = document.getElementById('photoAmount').value;
+                
+                if (!amount) {
+                    showError("Please enter an amount or serving size.");
+                    return;
+                }
+
+                showLoading();
+
+                if (photoEntryMode === 'upload') {
+                    // --- UPLOAD LOGIC ---
+                    const file = fileInput.files[0];
+                    const condition = foodConditionSelect.value;
+
+                    if (!file) {
+                        showError("Please upload an image first.");
+                        hideLoading();
+                        return;
+                    }
+
+                    try {
+                        const base64Data = await fileToBase64(file);
+                        const mimeType = file.type;
+                        
+                        const result = await getPhotoCalories(base64Data, mimeType, amount, condition);
+                        const data = JSON.parse(result.candidates[0].content.parts[0].text);
+                        data.id = Date.now();
+
+                        photoLog.push(data);
+                        renderPhotoLog();
+
+                        photoResultText.textContent = `Added: ${data.foodName} (${data.servingSize})`;
+                        photoResultCalories.textContent = Math.round(data.calories);
+                        photoResult.classList.remove('hidden');
+
+                        photoEntryForm.reset();
+                        fileName.textContent = "";
+                        imagePreview.classList.add('hidden');
+                        imagePreview.src = "";
+                        fileInput.value = null;
+                        
+                        // Reset UI
+                        photoEntryForm.classList.add('hidden');
+                        foodConditionContainer.classList.add('hidden');
+                        uploadPreviewContainer.classList.add('hidden');
+
+                    } catch (error) {
+                        console.error("Gemini API Error (Photo):", error);
+                        showError("Could not analyze the image. Please try a clearer photo or a different food.");
+                    } finally {
+                        hideLoading();
+                    }
+
+                } else if (photoEntryMode === 'camera') {
+                    // --- CAMERA LOGIC ---
+                    const ingredients = photoIngredients.value;
+
+                    // Check if photo was snapped
+                    const canvas = photoCanvas;
+                    if (canvas.width === 0 || canvas.height === 0 || photoCanvas.classList.contains('hidden')) {
+                        showError("Please snap a photo first.");
+                        hideLoading();
+                        return;
+                    }
+                    
+                    if (!ingredients) {
+                        showError("Please enter the ingredients for the meal.");
+                        hideLoading();
+                        return;
+                    }
+
+                    try {
+                        // Use the MANUAL calories function, as requested
+                        const result = await getManualCalories(ingredients, amount);
+                        const data = JSON.parse(result.candidates[0].content.parts[0].text);
+                        data.id = Date.now();
+                        
+                        // Save the snapped photo for the log
+                        data.imageBase64 = canvas.toDataURL('image/jpeg', 0.8); // Save as JPEG
+
+                        // Add to the *photo* log
+                        photoLog.push(data);
+                        renderPhotoLog();
+
+                        photoResultText.textContent = `Added: ${data.foodName} (${data.servingSize})`;
+                        photoResultCalories.textContent = Math.round(data.calories);
+                        photoResult.classList.remove('hidden');
+
+                        // Reset form and camera
+                        photoEntryForm.reset();
+                        photoIngredients.value = '';
+                        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                        
+                        // Reset UI
+                        stopCamera();
+                        photoEntryForm.classList.add('hidden');
+                        ingredientsContainer.classList.add('hidden');
+
+                    } catch (error) {
+                        console.error("Gemini API Error (Manual from Camera):", error);
+                        showError("Could not find calories for these ingredients. Please try a different query.");
+                    } finally {
+                        hideLoading();
+                    }
+                }
+            });
+            
+            clearPhotoLog.addEventListener('click', () => {
+                photoLog = [];
+                renderPhotoLog();
+                photoResult.classList.add('hidden');
+            });
+
+            // Event listener for removing individual photo items
+            photoFoodList.addEventListener('click', (e) => {
+                const removeButton = e.target.closest('.remove-photo-item');
+                if (removeButton) {
+                    const idToRemove = Number(removeButton.dataset.id);
+                    photoLog = photoLog.filter(item => item.id !== idToRemove);
+                    renderPhotoLog();
+                }
+            });
+
+            // --- Feature 4: Diet Planner ---
+
+            // 4a: Food Suggestions
+            async function getFoodSuggestions(goal) {
+                if (API_KEY === "") {
+                    console.warn("API_KEY is missing. Returning mock data for food suggestions.");
+                    const mockSuggestions = [
+                        "Chicken Breast (Offline Sample)",
+                        "Broccoli (Offline Sample)",
+                        "Brown Rice (Offline Sample)",
+                        "Salmon (Offline Sample)",
+                        "Greek Yogurt (Offline Sample)",
+                        "Oats (Offline Sample)",
+                        "Almonds (Offline Sample)",
+                        "Spinach (Offline Sample)"
+                    ];
+                    const mockResult = {
+                        candidates: [{
+                            content: {
+                                parts: [{
+                                    text: JSON.stringify(mockSuggestions)
+                                }]
+                            }
+                        }]
+                    };
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    return mockResult;
+                }
+
+                const suggestionSchema = { type: "ARRAY", items: { type: "STRING" } };
+                const systemPromptText = `You are a nutritional assistant. Provide a list of 10-15 healthy food items. Respond *only* with a JSON array of strings, e.g., ["Chicken Breast", "Broccoli"].`;
+                const userPrompt = `Suggest 10-15 healthy food items for someone who wants to ${goal}.`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    systemInstruction: { parts: [{ text: systemPromptText }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: suggestionSchema
+                    }
+                };
+                return await fetchWithBackoff(API_URL, payload);
+            }
+
+            foodSuggestForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideAllResults();
+                showLoading();
+
+                const goal = document.getElementById('suggestGoal').value;
+
+                try {
+                    const result = await getFoodSuggestions(goal);
+                    const data = JSON.parse(result.candidates[0].content.parts[0].text);
+                    
+                    suggestionList.innerHTML = data.map(item => 
+                        `<li class="ml-4">${item}</li>`
+                    ).join('');
+                    suggestionResult.classList.remove('hidden');
+
+                } catch (error) {
+                    console.error("Gemini API Error (Suggestions):", error);
+                    showError("Could not get suggestions. Please try again.");
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // 4b: Diet Plan Generator
+            async function getDietPlan(targetCals, goal, timeframe) {
+                if (API_KEY === "") {
+                    console.warn("API_KEY is missing. Returning mock data for diet plan.");
+                    const mockPlan = `--- OFFLINE SAMPLE PLAN ---
+This is a sample plan. For a personalized plan, please run this on a server with a valid API key.
+
+**Day 1: Sample Day (approx. ${targetCals} kcal)**
+
+* **Breakfast:** 1/2 cup Oats (cooked) with 1 cup berries and 1 tbsp almonds.
+* **Lunch:** 150g Grilled Chicken Breast, 1 cup Quinoa, 2 cups mixed salad with vinaigrette.
+* **Dinner:** 150g Baked Salmon, 1 cup steamed broccoli, 1/2 cup brown rice.
+* **Snacks:** 1 Apple, 1 small Greek Yogurt.
+
+(This sample is for demonstration only and may not be nutritionally complete.)
+                    `;
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    return mockPlan;
+                }
+
+                const systemPromptText = `You are an expert dietitian. Create a simple, easy-to-understand 7-day sample diet plan based on the user's request. Use common, everyday food items. Format it clearly with headings for each day and meal (Breakfast, Lunch, Dinner, Snacks). Do not include any preamble, just the plan.`;
+                const userPrompt = `Create a 7-day sample diet plan for me. My target is ${targetCals} kcal per day. My goal is to ${goal} ${timeframe}. Please include options for breakfast, lunch, dinner, and snacks.`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    systemInstruction: { parts: [{ text: systemPromptText }] }
+                    // No generationConfig for JSON, we want free text
+                };
+                
+                const result = await fetchWithBackoff(API_URL, payload);
+                return result.candidates[0].content.parts[0].text;
+            }
+
+            dietPlanForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideAllResults();
+                showLoading();
+
+                const targetCals = document.getElementById('targetCalories').value;
+                const goal = document.getElementById('planGoal').value;
+                const timeframe = document.getElementById('planTimeframe').value;
+
+                if (!targetCals || targetCals <= 0) {
+                    showError("Please enter a valid calorie target.");
+                    hideLoading(); // Manually hide loading as we're returning early
+                    return;
+                }
+
+                try {
+                    const planText = await getDietPlan(targetCals, goal, timeframe);
+                    dietPlanResult.textContent = planText; // Use textContent for safety
+                    dietPlanResult.classList.remove('hidden');
+
+                } catch (error) {
+                    console.error("Gemini API Error (Diet Plan):", error);
+                    showError("Could not generate the diet plan. Please try again.");
+                } finally {
+                    hideLoading();
+                }
+            });
+
+        });
+    </script>
+
 </body>
 </html>
